@@ -5,8 +5,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentResultListener;
 import androidx.navigation.Navigation;
 
 import java.util.ArrayList;
@@ -24,6 +26,8 @@ public class ScoreFragment extends Fragment {
 	public static final String HOME_REQUEST_KEY = "home";
 	public static final String AWAY_REQUEST_KEY = "away";
 	public static final String SCORER_KEY = "scorer";
+	public String home;
+	public String away;
 
 	private List<GoalScorer> homeGoalScorerList;
 	private List<GoalScorer> awayGoalScorerList;
@@ -42,11 +46,40 @@ public class ScoreFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState) {
-		FragmentScoreBinding binding = DataBindingUtil
+		final FragmentScoreBinding binding = DataBindingUtil
 				.inflate(inflater, R.layout.fragment_score, container, false);
 		binding.setHomeGoalScorerList(homeGoalScorerList);
 		binding.setAwayGoalScorerList(awayGoalScorerList);
 		binding.setFragment(this);
+
+		getParentFragmentManager().setFragmentResultListener(HOME_REQUEST_KEY, this, (new FragmentResultListener() {
+			@Override
+			public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
+				GoalScorer goalScorer = result.getParcelable(SCORER_KEY);
+				homeGoalScorerList.add(goalScorer);
+				for (int i = 0; i < homeGoalScorerList.size(); i++){
+					home = binding.textHomeScorer.getText() + homeGoalScorerList.get(i).getName() + " " +
+							homeGoalScorerList.get(i).getMinute()+"\" ";
+				}
+				binding.textHomeScorer.setText(home);
+			}
+		}));
+
+		getParentFragmentManager().setFragmentResultListener(AWAY_REQUEST_KEY, this, (new FragmentResultListener() {
+			@Override
+			public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
+				GoalScorer goalScorer = result.getParcelable(SCORER_KEY);
+				awayGoalScorerList.add(goalScorer);
+				for (int i = 0; i < awayGoalScorerList.size(); i++){
+					away = binding.textAwayScorer.getText() + awayGoalScorerList.get(i).getName() + " " +
+							awayGoalScorerList.get(i).getMinute()+"\" ";
+				}
+				binding.textAwayScorer.setText(away);
+			}
+		}));
+
+		binding.textHomeScorer.setText(home);
+		binding.textAwayScorer.setText(away);
 		return binding.getRoot();
 	}
 
